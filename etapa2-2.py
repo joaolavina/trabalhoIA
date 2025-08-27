@@ -1,95 +1,108 @@
-import random
-import time
+import networkx as nx
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
+grid = [
+    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [1, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 1, 0, 1, 1, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+]
 
-class Grid:
-    def __init__(self, grid_size = 10):
-        self.grid_size = grid_size
-        self.create_grid()
+linhas, colunas = len(grid), len(grid[0])
 
-    def create_grid(self):
-        self.grid = [
-            ["X", "X", ".", ".", ".", ".", ".", ".", ".", "."],
-            [".", ".", ".", "X", "X", ".", ".", ".", ".", "."],
-            [".", ".", ".", ".", ".", ".", ".", ".", ".", "."],
-            [".", ".", ".", ".", ".", ".", ".", ".", ".", "."],
-            [".", ".", ".", ".", ".", "X", "X", ".", ".", "."],
-            [".", ".", ".", ".", ".", "X", "X", ".", ".", "."],
-            [".", ".", ".", ".", ".", "X", "X", "X", ".", "."],
-            [".", ".", ".", ".", ".", ".", "X", "X", ".", "."],
-            [".", ".", ".", ".", ".", ".", ".", ".", ".", "."],
-            [".", ".", ".", ".", ".", ".", ".", ".", ".", "."]
-        ]
+G = nx.Graph()
+dirs4 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
-        self.bot = (0,0)   
+for i in range(linhas):
+    for j in range(colunas):
+        if grid[i][j] == 0:
+            G.add_node((i, j))
+            for di, dj in dirs4:
+                ni, nj = i + di, j + dj
+                if 0 <= ni < linhas and 0 <= nj < colunas and grid[ni][nj] == 0:
+                    G.add_edge((i, j), (ni, nj))
 
-        self.bot = (random.randrange(self.grid_size), random.randrange(self.grid_size))
+start = (0, 0)
+assert grid[start[0]][start[1]] == 0, "Start é um obstáculo!"
 
-    def render_grid(self):
-        print("\n".join(" ".join(row) for row in self.grid))
-        print("\n")
-    
-    def is_valid_move(self, x, y):
-        if not (0 <= x < self.grid_size and 0 <= y < self.grid_size):
-            return False
-        return True
+def dfs_walk_generator(G, start):
+    """
+    Um gerador que produz cada nó da caminhada,
+    permitindo a animação passo a passo.
+    """
+    visited = {start}
+    yield start 
+    stack = [(start, iter(sorted(G.neighbors(start))))]
 
-    def move_bot(self, direction):
-        old_x, old_y = self.bot
-        new_x, new_y = old_x, old_y
+    while stack:
+        v, it = stack[-1]
+        try:
+            w = next(it)
+        except StopIteration:
+            stack.pop()
+            if stack:
+                yield stack[-1][0]
+            continue
 
-        if direction == "N":
-            new_x -= 1
-        elif direction == "S":
-            new_x += 1
-        elif direction == "W":
-            new_y -= 1
-        elif direction == "E":
-            new_y += 1
-        
-        if self.is_valid_move(new_x, new_y):
-            self.grid[old_x][old_y] = "V"
-            self.grid[new_x][new_y] = "A"
-            self.bot = (new_x, new_y)
-            return True
-        return False
+        if w not in visited:
+            visited.add(w)
+            yield w
+            stack.append((w, iter(sorted(G.neighbors(w)))))
 
-def run_model_based_agent():
-    grid = Grid()
-    
-    steps = 0
-    max_steps = 200
-        
-    grid.grid[grid.bot[0]][grid.bot[1]] = "A"
-    grid.render_grid()
+fig, ax = plt.subplots(figsize=(6, 6))
 
-    while steps < max_steps:        
-        current_x, current_y = grid.bot
-        
-        possible_moves = []
-        directions = {"N": (-1, 0), "S": (1, 0), "W": (0, -1), "E": (0, 1)}
-
-        for direction, (dx, dy) in directions.items():
-            new_x, new_y = current_x + dx, current_y + dy
-            if grid.is_valid_move(new_x, new_y) and grid.grid[new_x][new_y] == ".":
-                possible_moves.append(direction)
-        
-        if possible_moves:
-            next_direction = random.choice(possible_moves)
+for i in range(linhas):
+    for j in range(colunas):
+        y = linhas - 1 - i
+        if grid[i][j] == 1:
+            ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="tab:blue", edgecolor="black", linewidth=0.5))
         else:
-        
-            possible_moves_visited = []
-            for direction, (dx, dy) in directions.items():
-                new_x, new_y = current_x + dx, current_y + dy
-                if grid.is_valid_move(new_x, new_y):
-                    possible_moves_visited.append(direction)
-            if possible_moves_visited:
-                 next_direction = random.choice(possible_moves_visited)
-            else:
-                break
+            ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="white", edgecolor="gray", linewidth=0.5))
 
-        grid.move_bot(next_direction)
-        grid.render_grid()
-        time.sleep(0.5)    
-   
-run_model_based_agent()
+ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "S", ha="center", va="center", fontsize=10, weight="bold")
+
+line, = ax.plot([], [], 'o-', color='red', linewidth=2)
+
+path_gen = dfs_walk_generator(G, start)
+
+
+def update(frame):
+    """
+    Função de atualização para a animação.
+    Recebe um novo nó e adiciona à linha do percurso.
+    """
+    global line
+    try:
+        current_node = next(path_gen)
+        x_coords = list(line.get_xdata())
+        y_coords = list(line.get_ydata())
+
+        x_coords.append(current_node[1] + 0.5)
+        y_coords.append(linhas - 1 - current_node[0] + 0.5)
+
+        line.set_xdata(x_coords)
+        line.set_ydata(y_coords)
+
+    except StopIteration:
+        ani.event_source.stop()
+
+    return line,
+
+
+ax.set_xlim(0, colunas)
+ax.set_ylim(0, linhas)
+ax.set_aspect("equal")
+ax.axis("off")
+plt.title("Animação da Busca em Profundidade (DFS)")
+
+ani = animation.FuncAnimation(fig, update, frames=G.number_of_nodes() * 2,
+                                  interval=100, blit=True, repeat=False)
+
+plt.show()
