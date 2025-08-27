@@ -1,67 +1,65 @@
 import random
-import time
+import networkx as nx
+import matplotlib.pyplot as plt
 
-class Grid:
-    def __init__(self, grid_size = 10):
+class GridGraph:
+    def __init__(self, grid_size=random.randrange(4,20)):
         self.grid_size = grid_size
-        self.create_grid()
+        self.graph = nx.grid_2d_graph(grid_size, grid_size)
+        self.bot = (random.randrange(grid_size), random.randrange(grid_size))
+        self.pos = {(x, y): (y, -x) for x, y in self.graph.nodes()}
+        plt.ion()
+        self.fig, self.ax = plt.subplots(figsize=(6, 6))
+        self.render_graph()
 
-    def create_grid(self):
-            x = random.randrange(self.grid_size)
-            y = random.randrange(self.grid_size)
-            self.collisions = {"N": 0, "S": 0, "W": 0, "E": 0}
-            self.bot = (x, y)   
+    def render_graph(self):
+        self.ax.clear()
+        nx.draw(
+            self.graph, self.pos, ax=self.ax,
+            node_size=100, node_color="lightgray", edge_color="lightgray"
+        )
+        nx.draw_networkx_nodes(
+            self.graph, self.pos, nodelist=[self.bot],
+            node_color="red", node_size=300, ax=self.ax
+        )
+        self.ax.set_title("Movimento do Robô na Grid")
+        plt.draw()
+        plt.pause(0.2)
 
-    def render_grid(self):
-        grid = [["." for _ in range(self.grid_size)] for _ in range(self.grid_size)]
-        ax, ay = self.bot
-        grid[ax][ay] = "R"
-        print("\n".join(" ".join(row) for row in grid))
-        print()
-
-    def move_bot(self, direction):
-        x,y = self.bot
-
-        if direction == "N":
-            if x == 0:
-                self.collisions["N"] = 1
+    def move_until_wall(self, direction):
+        x, y = self.bot
+        steps = 0
+        while True:
+            if direction == "N":
+                new_pos = (x-1, y)
+            elif direction == "S":
+                new_pos = (x+1, y)
+            elif direction == "W":
+                new_pos = (x, y-1)
+            elif direction == "E":
+                new_pos = (x, y+1)
             else:
-                x -= 1
-        elif direction == "S":
-            if x == self.grid_size - 1:
-                self.collisions["S"] = 1
-            else:
-                x += 1
-        elif direction == "W":
-            if y == 0:
-                self.collisions["W"] = 1
-            else:
-                y -= 1
-        elif direction == "E":
-            if y == self.grid_size - 1:
-                self.collisions["E"] = 1
-            else:
-                y += 1
-        
-        self.bot = (x, y)
-        self.render_grid()
+                break
 
-        done = all(value == 1 for value in self.collisions.values())
-        return done
-    
+            if not self.graph.has_node(new_pos):
+                break
+            self.bot = new_pos
+            x, y = self.bot
+            steps += 1
+            self.render_graph()
+        return steps
+
 def run():
-        grid = Grid()
-        grid.render_grid()
-        directions = ["N", "S", "W", "E"]
-        done = False
+    grid = GridGraph()
+    grid.move_until_wall("N")
+    grid.move_until_wall("W")
+    casas_leste = grid.move_until_wall("E")
+    casas_sul = grid.move_until_wall("S")
+    largura = grid.grid_size
+    altura = grid.grid_size
+    print(f"Tamanho da grid: {largura} x {altura}")
+    plt.ioff()
+    plt.show()
 
-        while not done:
-            direction = random.choice(directions)
-            print(f"Movendo para {direction}")
-            done = grid.move_bot(direction)
-            time.sleep(0.5) 
-
-        print("Todas direções exploradas!")
-run()
-
-
+if __name__ == "__main__":
+    run()
