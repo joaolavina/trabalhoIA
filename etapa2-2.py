@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import csv
 
 grid = [
     [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
@@ -33,7 +34,7 @@ start = (0, 0)
 
 def dfs_walk_generator(G, start):
     visited = {start}
-    yield start 
+    yield start
     stack = [(start, iter(sorted(G.neighbors(start))))]
 
     while stack:
@@ -51,6 +52,19 @@ def dfs_walk_generator(G, start):
             yield w
             stack.append((w, iter(sorted(G.neighbors(w)))))
 
+
+path_gen = dfs_walk_generator(G, start)
+dfs_path = list(path_gen)
+
+csv_file_path = 'caminho_et2-2.csv'
+with open(csv_file_path, 'w', newline='') as file:
+    writer = csv.writer(file)
+
+    writer.writerow(['step', 'node_row', 'node_col'])
+    for i, node in enumerate(dfs_path):
+        writer.writerow([i, node[0], node[1]])
+
+
 fig, ax = plt.subplots(figsize=(6, 6))
 
 for i in range(linhas):
@@ -65,13 +79,12 @@ ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "I", ha="center", va="cente
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
 
-path_gen = dfs_walk_generator(G, start)
-
+path_gen_anim = dfs_walk_generator(G, start)
 
 def update(frame):
     global line
     try:
-        current_node = next(path_gen)
+        current_node = next(path_gen_anim) 
         x_coords = list(line.get_xdata())
         y_coords = list(line.get_ydata())
 
@@ -85,7 +98,6 @@ def update(frame):
         ani.event_source.stop()
 
     return line,
-
 
 ax.set_xlim(0, colunas)
 ax.set_ylim(0, linhas)
