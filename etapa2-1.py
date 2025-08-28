@@ -26,18 +26,14 @@ for i in range(linhas):
             G.add_node((i, j))
             for di, dj in dirs4:
                 ni, nj = i + di, j + dj
-                if 0 <= ni < linhas and 0 <= nj < colunas and grid[ni][nj] == 0:
+                if 0 <= ni < linhas and 0 <= nj < colunas:
                     G.add_edge((i, j), (ni, nj))
 
 start = (0, 0)
 
-def dfs_walk_generator(G, start):
-    """
-    Um gerador que produz cada nó da caminhada,
-    permitindo a animação passo a passo.
-    """
+def walk(G, start):
     visited = {start}
-    yield start  # Produz o primeiro nó
+    yield start 
     stack = [(start, iter(sorted(G.neighbors(start))))]
 
     while stack:
@@ -60,23 +56,16 @@ fig, ax = plt.subplots(figsize=(6, 6))
 for i in range(linhas):
     for j in range(colunas):
         y = linhas - 1 - i
-        if grid[i][j] == 1:
-            ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="tab:blue", edgecolor="black", linewidth=0.5))
-        else:
-            ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="white", edgecolor="gray", linewidth=0.5))
+        ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="white", edgecolor="gray", linewidth=0.5))
 
 ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "I", ha="center", va="center", fontsize=10, weight="bold")
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
 
-path_gen = dfs_walk_generator(G, start)
+path_gen = walk(G, start)
 
 
 def update(frame):
-    """
-    Função de atualização para a animação.
-    Recebe um novo nó e adiciona à linha do percurso.
-    """
     global line
     try:
         current_node = next(path_gen)

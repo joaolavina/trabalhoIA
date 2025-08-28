@@ -31,7 +31,7 @@ for i in range(linhas):
 
 start = (0, 0)
 
-def dfs_walk_generator(G, start):
+def walk(G, start):
     visited = {start}
     yield start 
     stack = [(start, iter(sorted(G.neighbors(start))))]
@@ -65,7 +65,7 @@ ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "I", ha="center", va="cente
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
 
-path_gen = dfs_walk_generator(G, start)
+path_gen = walk(G, start)
 
 
 def update(frame):
