@@ -30,8 +30,6 @@ for i in range(linhas):
                     G.add_edge((i, j), (ni, nj))
 
 start = (0, 0)
-assert grid[start[0]][start[1]] == 0, "Start é um obstáculo!"
-
 
 def dfs_walk_generator(G, start):
     """
@@ -67,7 +65,7 @@ for i in range(linhas):
         else:
             ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="white", edgecolor="gray", linewidth=0.5))
 
-ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "S", ha="center", va="center", fontsize=10, weight="bold")
+ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "I", ha="center", va="center", fontsize=10, weight="bold")
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
 
@@ -101,7 +99,6 @@ ax.set_xlim(0, colunas)
 ax.set_ylim(0, linhas)
 ax.set_aspect("equal")
 ax.axis("off")
-plt.title("Animação da Busca em Profundidade (DFS)")
 
 ani = animation.FuncAnimation(fig, update, frames=G.number_of_nodes() * 2,
                                   interval=100, blit=True, repeat=False)
