@@ -30,13 +30,9 @@ for i in range(linhas):
                     G.add_edge((i, j), (ni, nj))
 
 start = (0, 0)
-assert grid[start[0]][start[1]] == 0, "Start é um obstáculo!"
+assert grid[start[0]][start[1]] == 0
 
 def dfs_walk_generator(G, start):
-    """
-    Um gerador que produz cada nó da caminhada,
-    permitindo a animação passo a passo.
-    """
     visited = {start}
     yield start 
     stack = [(start, iter(sorted(G.neighbors(start))))]
@@ -74,10 +70,6 @@ path_gen = dfs_walk_generator(G, start)
 
 
 def update(frame):
-    """
-    Função de atualização para a animação.
-    Recebe um novo nó e adiciona à linha do percurso.
-    """
     global line
     try:
         current_node = next(path_gen)
