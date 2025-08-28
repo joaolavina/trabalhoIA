@@ -26,7 +26,7 @@ for i in range(linhas):
         G.add_node((i, j))
         for di, dj in dirs4:
             ni, nj = i + di, j + dj
-            if 0 <= ni < linhas and 0 <= nj < colunas and grid[ni][nj] == 0:
+            if 0 <= ni < linhas and 0 <= nj < colunas:
                 G.add_edge((i, j), (ni, nj))
 
 start = (5, 5)
