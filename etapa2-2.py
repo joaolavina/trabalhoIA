@@ -32,7 +32,7 @@ for i in range(linhas):
 
 start = (0, 0)
 
-def dfs_walk_generator(G, start):
+def walk(G, start):
     visited = {start}
     yield start
     stack = [(start, iter(sorted(G.neighbors(start))))]
@@ -53,7 +53,7 @@ def dfs_walk_generator(G, start):
             stack.append((w, iter(sorted(G.neighbors(w)))))
 
 
-path_gen = dfs_walk_generator(G, start)
+path_gen = walk(G, start)
 dfs_path = list(path_gen)
 
 csv_file_path = 'caminho_et2-1.csv'
@@ -79,12 +79,12 @@ ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "I", ha="center", va="cente
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
 
-path_gen_anim = dfs_walk_generator(G, start)
+path_gen_anim = walk(G, start)
 
 def update(frame):
     global line
     try:
-        current_node = next(path_gen_anim) # Use the new generator
+        current_node = next(path_gen_anim)
         x_coords = list(line.get_xdata())
         y_coords = list(line.get_ydata())
 

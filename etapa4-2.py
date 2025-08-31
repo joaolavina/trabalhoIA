@@ -1,9 +1,8 @@
-import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from collections import deque
+import numpy as np
+from heapq import heappush, heappop
 
-# Configuração inicial do grid e do grafo
 grid = [
     [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -15,5 +14,5 @@ grid = [
     [1, 1, 1, 1, 2, 3, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, -1, 1, 1, 1, 1]
+    [1, 1, 1, 1, 1, 0, 1, 1, 1, 1]
 ]
