@@ -19,29 +19,33 @@ grid = [
 linhas, colunas = len(grid), len(grid[0])
 
 G = nx.Graph()
-dirs4 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+direcoes = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 for i in range(linhas):
     for j in range(colunas):
         G.add_node((i, j))
-        for di, dj in dirs4:
+        for di, dj in direcoes:
             ni, nj = i + di, j + dj
             if 0 <= ni < linhas and 0 <= nj < colunas:
                 G.add_edge((i, j), (ni, nj))
 
-start = (5, 5)
+inicio = (5, 5)
 
-def walk(G, start):
+def percorrer(G, inicio):
 
-    for direction in random.sample(dirs4, len(dirs4)):
-        yield start
-        ni, nj = start[0] + direction[0], start[1] + direction[1]
+    for direcao in random.sample(direcoes, len(direcoes)):
+        yield inicio
+        ni, nj = inicio[0] + direcao[0], inicio[1] + direcao[1]
 
         while 0 <= ni < linhas and 0 <= nj < colunas:
             yield (ni, nj)
-            start = (ni, nj)
-            ni, nj = start[0] + direction[0], start[1] + direction[1]
-    
+            inicio = (ni, nj)
+            ni, nj = inicio[0] + direcao[0], inicio[1] + direcao[1]
+
+caminho = percorrer(G, inicio)
+
+# Animação
+
 fig, ax = plt.subplots(figsize=(6, 6))
 
 for i in range(linhas):
@@ -49,15 +53,14 @@ for i in range(linhas):
         y = linhas - 1 - i
         ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="white", edgecolor="gray", linewidth=0.5))
 
-ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "I", ha="center", va="center", fontsize=10, weight="bold")
+ax.text(inicio[1] + 0.5, linhas - 1 - inicio[0] + 0.5, "I", ha="center", va="center", fontsize=10, weight="bold")
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
-
-path_gen = walk(G, start)
+cursor_dot = ax.scatter([], [], s=100, color='black', zorder=3)
 
 def update(frame):
-    global line
+    global line, cursor_dot
     try:
-        current_node = next(path_gen)
+        current_node = next(caminho)
         x_coords = list(line.get_xdata())
         y_coords = list(line.get_ydata())
 
@@ -67,10 +70,12 @@ def update(frame):
         line.set_xdata(x_coords)
         line.set_ydata(y_coords)
 
+        cursor_dot.set_offsets([[current_node[1] + 0.5, linhas - 1 - current_node[0] + 0.5]])
+
     except StopIteration:
         ani.event_source.stop()
 
-    return line,
+    return line, cursor_dot
 
 ax.set_xlim(0, colunas)
 ax.set_ylim(0, linhas)

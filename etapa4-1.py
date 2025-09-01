@@ -1,6 +1,6 @@
+from os import path
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-
 from heapq import heappush, heappop
 
 grid = [
@@ -18,58 +18,60 @@ grid = [
 ]
 
 linhas, colunas = len(grid), len(grid[0])
-start_node = (0, 5)
-end_node = (10, 5)
-dirs4 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+inicio = (0, 5)
+fim = (10, 5)
+direcoes = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
-def in_bounds(i, j):
+def dentro_grid(i, j):
     return 0 <= i < linhas and 0 <= j < colunas
 
-def passable(i, j):
-    return in_bounds(i, j)
+def passavel(i, j):
+    return dentro_grid(i, j)
 
-def dijkstra_grid(start, goal):
+def grid_dijkstra(inicio, meta):
     pq = []
-    heappush(pq, (0, start, None))
-    came_from = {}
-    g_score = {start: 0}
+    heappush(pq, (0, inicio, None))
+    percurso = {}
+    g_score = {inicio: 0}
 
     while pq:
-        g, current, parent = heappop(pq)
-        if current in came_from:
+        g, atual, pai = heappop(pq)
+        if atual in percurso:
             continue
-        came_from[current] = parent
+        percurso[atual] = pai
 
-        if current == goal:
-            path = []
-            cur = current
+        if atual == meta:
+            caminho = []
+            cur = atual
             while cur is not None:
-                path.append(cur)
-                cur = came_from[cur]
-            path.reverse()
-            return path
+                caminho.append(cur)
+                cur = percurso[cur]
+            caminho.reverse()
+            return caminho
 
-        ci, cj = current
-        for di, dj in dirs4:
+        ci, cj = atual
+        for di, dj in direcoes:
             ni, nj = ci + di, cj + dj
-            neighbor = (ni, nj)
-            if not passable(ni, nj):
+            vizinho = (ni, nj)
+            if not passavel(ni, nj):
                 continue
             tentative_g = g + grid[ni][nj]
-            if neighbor in g_score and tentative_g >= g_score[neighbor]:
+            if vizinho in g_score and tentative_g >= g_score[vizinho]:
                 continue
-            g_score[neighbor] = tentative_g
-            heappush(pq, (tentative_g, neighbor, current))
+            g_score[vizinho] = tentative_g
+            heappush(pq, (tentative_g, vizinho, atual))
 
     return None
 
-def calculate_cost(path, grid_map):
-    if not path:
+def calcular_custo(caminho, grid_map):
+    if not caminho:
         return 0
-    return sum(grid_map[i][j] for (i, j) in path)
+    return sum(grid_map[i][j] for (i, j) in caminho)
 
-path = dijkstra_grid(start_node, end_node)
-total_cost = calculate_cost(path, grid)
+caminho = grid_dijkstra(inicio, fim)
+custo_total = calcular_custo(caminho, grid)
+
+# Animação
 
 fig, ax = plt.subplots(figsize=(6, 6))
 
@@ -87,22 +89,26 @@ for i in range(linhas):
         ax.text(j + 0.5, y + 0.5, label, ha="center", va="center", fontsize=10,
                 color='white' if cost == 3 else 'black', weight="bold")
 
-ax.text(start_node[1] + 0.5, linhas - 1 - start_node[0] + 0.5, "i", ha="center", va="center", fontsize=12, weight="bold", color="red")
-ax.text(end_node[1] + 0.5, linhas - 1 - end_node[0] + 0.5, "f", ha="center", va="center", fontsize=12, weight="bold", color="red")
+ax.text(inicio[1] + 0.5, linhas - 1 - inicio[0] + 0.5, "i", ha="center", va="center", fontsize=12, weight="bold", color="red")
+ax.text(fim[1] + 0.5, linhas - 1 - fim[0] + 0.5, "f", ha="center", va="center", fontsize=12, weight="bold", color="red")
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
+cursor_dot = ax.scatter([], [], color='black', s=80, zorder=3)
 
 def update_anim(k):
-    sub = path[:k+1]
+    sub = caminho[:k+1]
     xs = [c + 0.5 for (_, c) in sub]
     ys = [linhas - 1 - r + 0.5 for (r, _) in sub]
     line.set_data(xs, ys)
-    return (line,)
+    if sub:
+        cursor_dot.set_offsets([[xs[-1], ys[-1]]])
+    return line, cursor_dot
 
 ax.set_xlim(0, colunas)
 ax.set_ylim(0, linhas)
 ax.set_aspect('equal')
 ax.axis('off')
+ax.text(colunas / 2, -0.5, f'Custo total: {custo_total}', ha="center", va="center", fontsize=14, color="blue", weight="bold")
 
-ani = animation.FuncAnimation(fig, update_anim, frames=len(path), interval=200, blit=False, repeat=False)
+ani = animation.FuncAnimation(fig, update_anim, frames=len(caminho), interval=200, blit=True, repeat=False)
 plt.show()

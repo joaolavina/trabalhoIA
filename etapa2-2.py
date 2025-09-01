@@ -19,23 +19,23 @@ grid = [
 linhas, colunas = len(grid), len(grid[0])
 
 G = nx.Graph()
-dirs4 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+direcoes = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 for i in range(linhas):
     for j in range(colunas):
         if grid[i][j] == 0:
             G.add_node((i, j))
-            for di, dj in dirs4:
+            for di, dj in direcoes:
                 ni, nj = i + di, j + dj
                 if 0 <= ni < linhas and 0 <= nj < colunas and grid[ni][nj] == 0:
                     G.add_edge((i, j), (ni, nj))
 
-start = (0, 0)
+inicio = (0, 0)
 
-def walk(G, start):
-    visited = {start}
-    yield start
-    stack = [(start, iter(sorted(G.neighbors(start))))]
+def percorrer(G, inicio):
+    visitada = {inicio}
+    yield inicio
+    stack = [(inicio, iter(sorted(G.neighbors(inicio))))]
 
     while stack:
         v, it = stack[-1]
@@ -47,23 +47,25 @@ def walk(G, start):
                 yield stack[-1][0]
             continue
 
-        if w not in visited:
-            visited.add(w)
+        if w not in visitada:
+            visitada.add(w)
             yield w
             stack.append((w, iter(sorted(G.neighbors(w)))))
 
+caminho = percorrer(G, inicio)
+caminho_texto = list(caminho)
 
-path_gen = walk(G, start)
-dfs_path = list(path_gen)
-
-csv_file_path = 'caminho_et2-1.csv'
-with open(csv_file_path, 'w', newline='') as file:
+arquivo_csv = 'caminho_et2-2.csv'
+with open(arquivo_csv, 'w', newline='') as file:
     writer = csv.writer(file)
 
-    writer.writerow(['step', 'node_row', 'node_col'])
-    for i, node in enumerate(dfs_path):
-        writer.writerow([i, node[0], node[1]])
+    writer.writerow(['passo', 'no_linha', 'no_coluna'])
+    for i, no in enumerate(caminho_texto):
+        writer.writerow([i, no[0], no[1]])
 
+print(f"Arquivo salvo em:'{arquivo_csv}'")
+
+# Animação
 
 fig, ax = plt.subplots(figsize=(6, 6))
 
@@ -75,16 +77,17 @@ for i in range(linhas):
         else:
             ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor="white", edgecolor="gray", linewidth=0.5))
 
-ax.text(start[1] + 0.5, linhas - 1 - start[0] + 0.5, "I", ha="center", va="center", fontsize=10, weight="bold")
+ax.text(inicio[1] + 0.5, linhas - 1 - inicio[0] + 0.5, "I", ha="center", va="center", fontsize=10, weight="bold")
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
+cursor_dot = ax.scatter([], [], color='black', s=80, zorder=3)
 
-path_gen_anim = walk(G, start)
+caminho_anim = percorrer(G, inicio)
 
 def update(frame):
-    global line
+    global line, cursor_dot
     try:
-        current_node = next(path_gen_anim)
+        current_node = next(caminho_anim)
         x_coords = list(line.get_xdata())
         y_coords = list(line.get_ydata())
 
@@ -94,10 +97,12 @@ def update(frame):
         line.set_xdata(x_coords)
         line.set_ydata(y_coords)
 
+        cursor_dot.set_offsets([[current_node[1] + 0.5, linhas - 1 - current_node[0] + 0.5]])
+
     except StopIteration:
         ani.event_source.stop()
 
-    return line,
+    return line, cursor_dot
 
 ax.set_xlim(0, colunas)
 ax.set_ylim(0, linhas)
