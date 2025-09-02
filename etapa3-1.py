@@ -50,7 +50,7 @@ def caminho_via_arquivo(arquivo, inicio, fim):
 caminho_mais_curto = caminho_via_arquivo(arquivo_csv, inicio, fim)
 
 if caminho_mais_curto:
-    def path_generator():
+    def gerador_caminho():
         for no in caminho_mais_curto:
             yield no
 
@@ -75,7 +75,7 @@ ax.text(fim[1] + 0.5, linhas - 1 - fim[0] + 0.5, "F",
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
 cursor_dot = ax.scatter([], [], color='black', s=80, zorder=3)
-path_gen = path_generator()
+path_gen = gerador_caminho()
 
 
 def update(frame):

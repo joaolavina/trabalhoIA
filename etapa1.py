@@ -29,7 +29,8 @@ for i in range(linhas):
             if 0 <= ni < linhas and 0 <= nj < colunas:
                 G.add_edge((i, j), (ni, nj))
 
-inicio = (5, 5)
+posicao_valida = [(i, j) for i in range(linhas) for j in range(colunas)]
+inicio = random.choice(posicao_valida)
 
 def percorrer(G, inicio):
 
