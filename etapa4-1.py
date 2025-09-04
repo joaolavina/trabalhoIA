@@ -1,7 +1,8 @@
-from os import path
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from heapq import heappush, heappop
+
+# Geração da grid com custos de caminhada
 
 grid = [
     [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
@@ -22,54 +23,102 @@ inicio = (0, 5)
 fim = (10, 5)
 direcoes = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
+# Teste de limites da grid
+
 def dentro_grid(i, j):
     return 0 <= i < linhas and 0 <= j < colunas
+
+# Teste de célula passável
 
 def passavel(i, j):
     return dentro_grid(i, j)
 
-def grid_dijkstra(inicio, meta):
-    pq = []
-    heappush(pq, (0, inicio, None))
-    percurso = {}
-    g_score = {inicio: 0}
+# Algoritmo de Dijkstra na grid
 
-    while pq:
-        g, atual, pai = heappop(pq)
+def grid_dijkstra(inicio, meta):
+    # Fila de prioridade que armazena os nós a serem explorados
+    monte = []
+
+    # Ponto inicial com custo 0 e sem pai.
+    heappush(monte, (0, inicio, None))
+
+    # Armazena o pai dos nós para reconstruir o caminho
+    percurso = {}
+
+    # Armazena o menor custo acumulado para chegar em cada nó
+    custo_total = {inicio: 0}
+
+    # Enquanto houver nós na fila
+    while monte:
+
+        # Retira o nó com menor custo acumulado
+        custo, atual, pai = heappop(monte)
+        
+        # Pula se o nó ja foi visitado
         if atual in percurso:
             continue
+
+        # Registra o pai do nó atual
         percurso[atual] = pai
 
+        # Se chegar na casa alvo, reconstrói o caminho
         if atual == meta:
             caminho = []
             cur = atual
+            # Volta do destino até a origem seguindo os pais
             while cur is not None:
                 caminho.append(cur)
                 cur = percurso[cur]
-            caminho.reverse()
+                
+            # inverte para ficar do início ao fim
+            caminho.reverse()  
             return caminho
 
+        # Pega as coordenadas do nó atual
         ci, cj = atual
+
+        # Explora todos os vizinhos possíveis
         for di, dj in direcoes:
             ni, nj = ci + di, cj + dj
             vizinho = (ni, nj)
+
+            # Ignora posições que não podem ser atravessadas
             if not passavel(ni, nj):
                 continue
-            tentative_g = g + grid[ni][nj]
-            if vizinho in g_score and tentative_g >= g_score[vizinho]:
-                continue
-            g_score[vizinho] = tentative_g
-            heappush(pq, (tentative_g, vizinho, atual))
 
+            # Custo acumulado até o vizinho
+            tentativa = custo + grid[ni][nj]
+
+            # Se já temos um caminho melhor para esse vizinho, ignora
+            if vizinho in custo_total and tentativa >= custo_total[vizinho]:
+                continue
+
+            # Atualiza o menor custo conhecido para esse vizinho
+            custo_total[vizinho] = tentativa
+
+            # Adiciona vizinho à fila com prioridade pelo custo acumulado
+            heappush(monte, (tentativa, vizinho, atual))
+
+    # Se não encotrar caminho, retorna None
     return None
 
+
 def calcular_custo(caminho, grid_map):
+    # Se não houver caminho, custo é zero
     if not caminho:
         return 0
+    # Soma os custos de todas as casas do caminho
     return sum(grid_map[i][j] for (i, j) in caminho)
 
+
+# Executa o algoritmo de Dijkstra
+
 caminho = grid_dijkstra(inicio, fim)
+
+# Calcula o custo total do caminho encontrado
+
 custo_total = calcular_custo(caminho, grid)
+
 
 # Animação
 
@@ -85,15 +134,19 @@ for i in range(linhas):
         else:
             color = 'lightgreen' if cost == 1 else 'sandybrown' if cost == 2 else 'dimgray'
             label = str(cost)
-        ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor=color, edgecolor="black", linewidth=0.5))
+        ax.add_patch(plt.Rectangle((j, y), 1, 1, facecolor=color,
+                     edgecolor="black", linewidth=0.5))
         ax.text(j + 0.5, y + 0.5, label, ha="center", va="center", fontsize=10,
                 color='white' if cost == 3 else 'black', weight="bold")
 
-ax.text(inicio[1] + 0.5, linhas - 1 - inicio[0] + 0.5, "i", ha="center", va="center", fontsize=12, weight="bold", color="red")
-ax.text(fim[1] + 0.5, linhas - 1 - fim[0] + 0.5, "f", ha="center", va="center", fontsize=12, weight="bold", color="red")
+ax.text(inicio[1] + 0.5, linhas - 1 - inicio[0] + 0.5, "i",
+        ha="center", va="center", fontsize=12, weight="bold", color="red")
+ax.text(fim[1] + 0.5, linhas - 1 - fim[0] + 0.5, "f", ha="center",
+        va="center", fontsize=12, weight="bold", color="red")
 
 line, = ax.plot([], [], 'o-', color='red', linewidth=2)
 cursor_dot = ax.scatter([], [], color='black', s=80, zorder=3)
+
 
 def update_anim(k):
     sub = caminho[:k+1]
@@ -104,11 +157,14 @@ def update_anim(k):
         cursor_dot.set_offsets([[xs[-1], ys[-1]]])
     return line, cursor_dot
 
+
 ax.set_xlim(0, colunas)
 ax.set_ylim(0, linhas)
 ax.set_aspect('equal')
 ax.axis('off')
-ax.text(colunas / 2, -0.5, f'Custo total: {custo_total}', ha="center", va="center", fontsize=14, color="blue", weight="bold")
+ax.text(colunas / 2, -0.5, f'Custo total: {custo_total}',
+        ha="center", va="center", fontsize=14, color="blue", weight="bold")
 
-ani = animation.FuncAnimation(fig, update_anim, frames=len(caminho), interval=200, blit=True, repeat=False)
+ani = animation.FuncAnimation(fig, update_anim, frames=len(
+    caminho), interval=200, blit=True, repeat=False)
 plt.show()

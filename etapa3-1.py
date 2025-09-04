@@ -1,9 +1,9 @@
-from tracemalloc import start
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import csv
-from collections import deque
+
+# Geração da grid para animação
 
 grid = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -23,12 +23,17 @@ inicio = (0, 0)
 fim = (7, 7)
 arquivo_csv = 'caminho_et2-1.csv'
 
+# Função para ler o arquivo .csv e construir o grafo
+
 def caminho_via_arquivo(arquivo, inicio, fim):
     grafo = nx.Graph()
     try:
+        # Abre o arquivo .csv
         with open(arquivo, 'r') as file:
             reader = csv.reader(file)
             next(reader)  
+            
+            # Loop para adicionar nós e arestas ao grafo
             proximo_no = None
             for row in reader:
                 no = (int(row[1]), int(row[2]))
@@ -39,6 +44,7 @@ def caminho_via_arquivo(arquivo, inicio, fim):
         print(f"Arquivo '{arquivo}' não foi encontrado.")
         return None
 
+# Algoritmo de busca de caminho mais curto no grafo
     if grafo.has_node(inicio) and grafo.has_node(fim):
         try:
             caminho = nx.shortest_path(grafo, source=inicio, target=fim)
@@ -47,14 +53,17 @@ def caminho_via_arquivo(arquivo, inicio, fim):
             print("Nenhum caminho encontrado.")
             return None
 
+# Roda o programa principal
 caminho_mais_curto = caminho_via_arquivo(arquivo_csv, inicio, fim)
 
+# Imprime o caminho mais curto encontrado
 if caminho_mais_curto:
     def gerador_caminho():
         for no in caminho_mais_curto:
             yield no
 
 # Animação
+
 
 fig, ax = plt.subplots(figsize=(6, 6))
 

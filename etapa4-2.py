@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+# Geração da grid com custos de caminhada
+
 grid = [
     [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -20,42 +22,72 @@ inicio = (0, 5)
 fim = (10, 5)
 direcoes = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
+# Teste de limites da grid
+
 def dentro_grid(i, j):
     return 0 <= i < linhas and 0 <= j < colunas
 
+# Busca com conhecimento local
+
 def busca_gulosa_local(inicio, fim):
+    # Inicia a lista de caminho com a posição inicial
     caminho = [inicio]
     atual = inicio
-    visited = set()
-    visited.add(atual)
+    
+    # Cria um conjunto para armazenar casas já visitadas
+    visitado = set()
+    visitado.add(atual)
+    
+    # Enquanto não chegar na casa alvo
     while atual != fim:
-        ci, cj = atual
+        ci, cj = atual  
         vizinhos = []
+        
+        # Percorre as direções possíveis
         for di, dj in direcoes:
-            ni, nj = ci + di, cj + dj
-            if dentro_grid(ni, nj) and (ni, nj) not in visited:
-                cost = grid[ni][nj]
-                dist = abs(ni - fim[0]) + abs(nj - fim[1])
-                vizinhos.append((cost, dist, (ni, nj)))
+            ni, nj = ci + di, cj + dj   # calcula nova posição
+            
+            # Verifica se a posição está dentro da grid e ainda não foi visitada
+            if dentro_grid(ni, nj) and (ni, nj) not in visitado: 
+                custo = grid[ni][nj] 
+                distancia = abs(ni - fim[0]) + abs(nj - fim[1])  
+                # Armazena custo, distância e coordenadas do vizinho
+                vizinhos.append((custo, distancia, (ni, nj)))
+        
+        # Se não houver vizinhos válidos, encerra a busca
         if not vizinhos:
             break
+        
+        # Ordena os vizinhos pelo menor custo e menor distância
         vizinhos.sort()
-        next_cell = vizinhos[0][2]
-        caminho.append(next_cell)
-        visited.add(next_cell)
-        atual = next_cell
+        
+        # Escolhe a melhor próxima casa
+        proxima_casa = vizinhos[0][2]
+        
+        # Adiciona ao caminho e marca como visitado
+        caminho.append(proxima_casa)
+        visitado.add(proxima_casa)
+        
+        # Atualiza a posição atual
+        atual = proxima_casa
 
     return caminho
 
+def calcular_custo(caminho, grid_map):
+    # Se o caminho for vazio, o custo é zero
+    if not caminho:
+        return 0
+    # Soma o custo de todas as posições visitadas no caminho
+    return sum(grid_map[i][j] for (i, j) in caminho)
+
+# Executa a busca gulosa do ponto inicial até o final
 
 caminho = busca_gulosa_local(inicio, fim)
 
-def calcular_custo(caminho, grid_map):
-    if not caminho:
-        return 0
-    return sum(grid_map[i][j] for (i, j) in caminho)
+# Calcula o custo total do caminho encontrado
 
 custo_total = calcular_custo(caminho, grid)
+
 
 # Animação
 
