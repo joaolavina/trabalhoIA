@@ -29,15 +29,17 @@ for i in range(linhas):
             if 0 <= ni < linhas and 0 <= nj < colunas:
                 G.add_edge((i, j), (ni, nj))
 
+# escolhe aleatoriamente uma casa dentro do grid
 posicao_valida = [(i, j) for i in range(linhas) for j in range(colunas)]
 inicio = random.choice(posicao_valida)
 
 def percorrer(G, inicio):
-
+    # ordena aleatoriamente o array de direções e depois itera ele
     for direcao in random.sample(direcoes, len(direcoes)):
         yield inicio
         ni, nj = inicio[0] + direcao[0], inicio[1] + direcao[1]
 
+        # continua na direção até "bater" com a borda do grid
         while 0 <= ni < linhas and 0 <= nj < colunas:
             yield (ni, nj)
             inicio = (ni, nj)

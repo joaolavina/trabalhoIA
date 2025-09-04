@@ -30,16 +30,23 @@ for i in range(linhas):
                 if 0 <= ni < linhas and 0 <= nj < colunas and grid[ni][nj] == 0:
                     G.add_edge((i, j), (ni, nj))
 
+# posição inicial
 inicio = (0, 0)
 
 def percorrer(G, inicio):
+    # array que contém as casas já visitadas
     visitada = {inicio}
     yield inicio
+    # pilha que armazena as casas a serem exploradas e um iterador para os vizinhos de cada casa
     stack = [(inicio, iter(sorted(G.neighbors(inicio))))]
 
+    # enquanto ainda houver casas na pilha
     while stack:
+        # pega a casa do topo da pilha e o iterador de seus vizinhos
         v, it = stack[-1]
         try:
+            # tenta pegar o próximo vizinho da casa atual
+            # se não encontrar, verifica se existe alguma casa no topo da pilha
             w = next(it)
         except StopIteration:
             stack.pop()
@@ -47,6 +54,7 @@ def percorrer(G, inicio):
                 yield stack[-1][0]
             continue
 
+        # se a casa ainda não foi visitada, marca como visitada e adiciona na pilha
         if w not in visitada:
             visitada.add(w)
             yield w
@@ -55,6 +63,7 @@ def percorrer(G, inicio):
 caminho = percorrer(G, inicio)
 caminho_texto = list(caminho)
 
+# escreve o resultado da DFS em um arquivo CSV
 arquivo_csv = 'caminho_et2-2.csv'
 with open(arquivo_csv, 'w', newline='') as file:
     writer = csv.writer(file)
